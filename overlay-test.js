@@ -3,7 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentPath = window.location.href;
     const [pageHtml] = currentPath.split('/').slice(-1);
     const pageName = pageHtml.split('.')[0];
-    const testImgSrc = `/test/${pageName}.png`;
+
+    let isPc = window.innerWidth <= 768 ? false : true;
+    let testImgSrc = `/test/${pageName}${!isPc ? '_mo' : ''}.png`;
 
     const doesFileExist = (url) => {
         var xhr = new XMLHttpRequest();
@@ -12,6 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send();
 
         if (xhr.status == "404") {
+            console.log("시안 파일이 없습니다.")
+
             return false
         } else {
             return true
@@ -40,6 +44,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const updateWinSize = () => {
+        let curIsPC = window.innerWidth >= 768;
+
+        if (isPc !== curIsPC) {
+            isPc = curIsPC; 
+
+            // 변경된 src값 바인딩
+            testImgSrc = `/test/${pageName}${!isPc ? '_mo' : ''}.png`;
+            testImg.src = testImgSrc;
+        }
+
         testWinSize.textContent = `현재 너비 : ${window.innerWidth}px`
     }
 
@@ -54,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!doesFileExist(testImgSrc)) return;
 
-    // CreateElement
     const testImg = document.createElement('img');
     const testOpacity = document.createElement('p');
     const testWinSize = document.createElement('p');
@@ -62,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let opacity = 0.5;
 
     testImg.src = testImgSrc;
+    testImg.classList.add('test-img');
 
     body.append(testImg, testOpacity, testWinSize)
     body.style.position = 'relative';
@@ -94,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         font-weight : bold;
         display: none;
     `
-
+    
     // Init 
     updateWinSize();
     updateOpacity('', opacity);
