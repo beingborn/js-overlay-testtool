@@ -20,6 +20,7 @@
                 - 초기 세팅의 불투명도 조정 버튼에 해당 키가 포함되어 있을 경우 
                     - 테스트 이미지의 opacity를 위아래로 0.1씩 조정한다. 
                         - 0이하거나 1일경우 실행하지 않는다
+                    - 테스트 이미지의 style을 수정한다
 
                 - 초기 세팅의 위아래 버튼에 해당 키가 포함되어 있을 경우 
                     - 테스트 이미지의 top 값을 1px 위아래로 방향키의 방향대로 조정한다
@@ -47,7 +48,9 @@ const CONFIG = {
     breakpointSuffix: "_mo",
     toggleKeys : ['t', 'T', 'ㅅ'],
     opacityKeys : [',', '.'],
+    positionKeys: ['[', ']'],
     initOpacity : 0.5,
+    initPosY : 0,
     include: "/test",
     extension: 'png',
 }
@@ -76,22 +79,64 @@ document.addEventListener('DOMContentLoaded', () => {
             return true
         }
     }
+    
+    const opacityHandler = (function(){
+        let opacity = CONFIG.initOpacity * 10;
 
-    const updateOpacity = (key, currentOpacity = CONFIG.initOpacity) => {
-        let result; 
-        
-        if (key === ',') {
-            result = Math.max(0, currentOpacity - 0.1);
+        return {
+            increment() {
+                if (opacity < 10) opacity += 1;                
+            },
+            decrement() {
+                if (opacity > 0) opacity -= 1
+            },
+            value() {
+                return (opacity / 10).toFixed(1);
+            }            
+        }
+    })();
 
-            console.log(result)
-        } else { 
-            result = Math.min(1, currentOpacity + 0.1);
+    const updateOpacity = (key) => {                    
+        switch (key) {
+            case ',':
+                opacityHandler.decrement();
+                break;
+            case '.':
+                opacityHandler.increment();
+                break;
+        }        
+
+        testElements.testImg.style.opacity = opacityHandler.value();
+        testElements.testOpacity.textContent = opacityHandler.value();        
+    }
+
+    const positionHandler = (function(){
+        let positionY = CONFIG.initPosY;
+
+        return {
+            increment(){
+                positionY += 1;
+            },
+            decrement() {
+                positionY -= 1;
+            },
+            value() {
+                return positionY;
+            }
+        }
+    })();
+
+    let updatePosition = (key) => {
+        switch (key) {
+            case '[':
+                positionHandler.decrement();
+                break;
+            case ']': 
+                positionHandler.increment();
+                break;
         }
 
-        result = Number(result.toFixed(2));
-        
-        testElements.testImg.style.opacity = result;
-        testElements.testOpacity.textContent = result;
+        testElements.testImg.style.top = positionHandler.value() + 'px';
     }
 
     const updateWinSize = () => {
@@ -182,13 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. 테스트 이미지에 스타일을 추가한다.
     setTestElementsStyle(testElements);
 
-    // Init 
-    updateWinSize();    
-    updateOpacity();
-
     document.addEventListener('keydown', (event) => {
         const key = event.key;
-        const currentOpacity = parseFloat(testElements.testImg) || 0;
         const isTestActive = testElements.testImg.style.display === 'block';
 
         if (CONFIG.toggleKeys.includes(key)) {
@@ -197,6 +237,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (CONFIG.opacityKeys.includes(key) && isTestActive) {
             updateOpacity(key)
+        }
+
+        if (CONFIG.positionKeys.includes(key) && isTestActive) {
+            updatePosition(key)
         }
     })
 
@@ -216,4 +260,8 @@ document.addEventListener('DOMContentLoaded', () => {
             testElements.testImg.src = currentTestImgSrc;
         }
     })
+
+    // Init 
+    updateWinSize();    
+    updateOpacity();
 })
